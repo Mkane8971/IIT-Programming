@@ -85,7 +85,8 @@ class CMSClient:
         self,
         hcpcs: str,
         year: int,
-        modifier: str | None = None
+        modifier: str | None = None,
+        resource_id: str | None = None
     ):
         # Validate inputs
         hcpcs = hcpcs.strip().upper()
@@ -103,7 +104,8 @@ class CMSClient:
                 raise ValueError("Invalid modifier")
 
         # Resolve the latest available dataset for the year
-        resource_id = await self.get_resource_id(year)
+        if resource_id is None:
+            resource_id = await self.get_resource_id(year)
 
         # Build CMS datastore SQL query
         query = (
