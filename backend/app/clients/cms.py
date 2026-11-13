@@ -13,7 +13,7 @@ class CMSClient:
             "metastore/schemas/dataset/items"
         )
 
-    async def get_resource_id(self, year: int):
+    async def get_resource_id(self, year: int, dataset_type: str = "Indicators"):
         async with httpx.AsyncClient(timeout=30.0) as client:
 
             # Retrieve CMS dataset catalog
@@ -25,11 +25,16 @@ class CMSClient:
             datasets = response.json()
 
             # Find all Indicators datasets for the requested year
+            if dataset_type not in ("Indicators", "Localities"):
+                raise ValueError(
+                    f"Invalid dataset type: {dataset_type}"
+                )
+            
             matches = [
                 dataset
                 for dataset in datasets
                 if re.fullmatch(
-                    rf"Indicators for {year}([A-Z])?",
+                    rf"{dataset_type} for {year}([A-Z])?",
                     dataset.get("title", "").strip(),
                     flags=re.IGNORECASE
                 )
@@ -45,7 +50,7 @@ class CMSClient:
             def release_order(dataset):
                 title = dataset["title"].strip().upper()
                 suffix = title.removeprefix(
-                    f"INDICATORS FOR {year}"
+                    f"{dataset_type.upper()} FOR {year}"
                 ).strip()
                 return suffix
 
@@ -135,3 +140,28 @@ class CMSClient:
             record for record in records
             if record["modifier"] == modifier
         ]
+
+    async def get_localities(self, year: int):
+        if not 2000 <= year <= 2100:
+            raise ValueError("Invalid year")
+
+        # Find the CMS Localities resource
+        resource_id = await self.get_resource_id(
+            year,
+            dataset_type="Localities"
+        )
+
+        # Retrieve locality and GPCI records
+        query = (
+            f"[SELECT * FROM {resource_id}]"
+            "[LIMIT 200 OFFSET 0]"
+        )
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                self.url,
+                params={"query": query}
+            )
+            response.raise_for_status()
+
+            return response.json()
