@@ -9,3 +9,10 @@ def health():
     return {"status": "healthy"}
 
 
+@app.get("/api/v1/status")
+def status():
+    return {
+        "application": "Medicare PFS Explorer",
+        "status": "operational",
+        "services": ["react", "fastapi", "mongodb"]
+    }
