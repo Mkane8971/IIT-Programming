@@ -1,0 +1,100 @@
+name: medicare-pfs-explorer
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app_network
+    security_opt:
+      - no-new-privileges:true
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      MONGO_HOST: mongo
+      MONGO_PORT: "27017"
+      MONGO_DATABASE: medicare
+      MONGO_USERNAME: root
+      MONGO_PASSWORD: example
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: 
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - app_network
+    security_opt:
+      - no-new-privileges:true
+  mongo:
+    image: mongo:8.0.38
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - >-
+          mongosh --quiet
+          --username "$$"
+          --password "$$"
+          authenticationDatabase admin
+          --eval "db.adminCommand({ping:1}).ok"
+          | grep -q 1
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - app_network
+    security_opt:
+      - no-new-privileges:true
+  ingestion:
+    profiles:
+      -ingestion
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.ingestion"]
+    environment:
+      MONGO_HOST: mongo
+      MONGO_PORT: "27017"
+      MONGO_DATABASE: medicare
+      MONGO_USERNAME: root
+      MONGO_PASSWORD: example
+    depends_on:
+      mongo:
+      condition: service_healthy
+    restart: "no"
+    networks:
+      - app_network
+    security_opt:
+      -no-new-privileges:true
+  networks:
+    app_network:
+      driver: bridge
+
+  volumes:
+    mongo_data:
