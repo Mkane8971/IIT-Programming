@@ -1,4 +1,4 @@
-from pymongo.asyncrhonous.database import AsyncDatabase
+from pymongo.asynchronous.database import AsyncDatabase
 
 
 async def get_procedure(
