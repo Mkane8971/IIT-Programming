@@ -31,6 +31,8 @@ services:
       MONGO_USERNAME: ${MONGO_ROOT_USERNAME:?Missing username}
       MONGO_PASSWORD: ${MONGO_ROOT_PASSWORD:?Missing password}
       MONGO_AUTH_SOURCE: admin
+      CMS_PFS_API_URL: ${CMS_PFS_API_URL}
+      CMS_PFS_RESOURCE_ID: ${CMS_PFS_RESOURCE_ID}
     depends_on:
       mongo:
         condition: service_healthy
