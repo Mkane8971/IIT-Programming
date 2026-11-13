@@ -7,3 +7,5 @@ app = FastAPI(title="Medicare PFS Explorer", description="A tool to explore Medi
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+

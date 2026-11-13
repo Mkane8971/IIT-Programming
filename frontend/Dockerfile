@@ -1,26 +1,29 @@
-# https://docs.docker.com/guides/reactjs/?utm_source=chatgpt.com#step-1-create-the-dockerfile
 
-#step 1
+# syntax=docker/dockerfile:1
+
 ARG NODE_VERSION=24.12.0-alpine
 ARG NGINX_VERSION=alpine3.22
 
-FROM node:${NODE_VERSION} as builder
+# Stage 1: Build React
+FROM node:${NODE_VERSION} AS builder
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN --mount=type=cache, target=/root/.npm npm ci
+
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY . .
+
 RUN npm run build
 
-# step 2 
+# Stage 2: Serve React with Nginx
 FROM nginxinc/nginx-unprivileged:${NGINX_VERSION} AS runner
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-COPY --chown=nginx:nginx --from=builder \ 
-    /app/build /usr/share/nginx/html
+COPY --chown=nginx:nginx --from=builder \
+    /app/dist /usr/share/nginx/html
 
 USER nginx
 
