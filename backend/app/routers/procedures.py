@@ -8,7 +8,8 @@ import httpx
 from app.clients.cms import CMSClient
 from app.repositories.procedures import (
     get_cached_procedure,
-    save_procedure
+    save_procedure,
+    cache_status,
 )
 
 
@@ -58,6 +59,7 @@ async def read_procedure(
             if datetime.now(timezone.utc) - retrieved_at < timedelta(hours=24):
                 return {
                     "source": "mongodb",
+                    "cache_status": cache_status(),
                     "setting": setting,
                     "records": cached["records"]
                 }
@@ -83,6 +85,7 @@ async def read_procedure(
 
         return {
             "source": "cms",
+            "cache_status": cache_status(),
             "setting": setting,
             "records": records
         }

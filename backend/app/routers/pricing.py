@@ -7,6 +7,7 @@ from app.clients.cms import CMSClient
 from app.repositories.procedures import (
     get_cached_procedure,
     save_procedure,
+    cache_status,
 )
 from app.services.pricing import calculate_payment
 
@@ -108,6 +109,7 @@ async def estimate_payment(
                 procedure=record,
                 locality=selected_locality,
                 setting=setting,
+                year=year,
             )
             for record in records
         ]
@@ -117,6 +119,7 @@ async def estimate_payment(
             "year": year,
             "setting": setting,
             "source": source,
+            "cache_status": cache_status(),
             "locality": selected_locality,
             "estimates": estimates
         }

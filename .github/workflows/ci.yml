@@ -1,0 +1,116 @@
+
+name: Medicare PFS CI/CD
+
+on:
+  push:
+    branches:
+      - feature/azure-deployment
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build FastAPI image
+        run: docker build -t pfs-api:test ./backend
+
+      - name: Run Python unit tests
+        run: |
+          docker run --rm pfs-api:test \
+            python -m pytest tests/ -v -p no:cacheprovider
+
+      - name: Build React frontend
+        run: |
+          docker build \
+            --build-arg NGINX_CONFIG=nginx.azure.conf \
+            -t pfs-frontend:test \
+            ./frontend
+
+      - name: Validate Azure Nginx configuration
+        run: |
+          docker run --rm \
+            --add-host pfs-api:127.0.0.1 \
+            --entrypoint nginx \
+            pfs-frontend:test \
+            -t -c /etc/nginx/nginx.conf
+
+  publish:
+    needs: test-and-build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish FastAPI
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ghcr.io/mkane8971/medicare-pfs-api:development
+            ghcr.io/mkane8971/medicare-pfs-api:${{ github.sha }}
+
+      - name: Build and publish React
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          build-args: |
+            NGINX_CONFIG=nginx.azure.conf
+          tags: |
+            ghcr.io/mkane8971/medicare-pfs-frontend:development
+            ghcr.io/mkane8971/medicare-pfs-frontend:${{ github.sha }}
+
+  deploy:
+    name: Deploy to Azure
+    needs: publish
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Sign in to Azure using OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy FastAPI
+        run: |
+          az containerapp update \
+            --name pfs-api \
+            --resource-group rg-medicare-pfs \
+            --image "ghcr.io/mkane8971/medicare-pfs-api:${{ github.sha }}"
+
+      - name: Deploy React frontend
+        run: |
+          az containerapp update \
+            --name pfs-frontend \
+            --resource-group rg-medicare-pfs \
+            --image "ghcr.io/mkane8971/medicare-pfs-frontend:${{ github.sha }}"

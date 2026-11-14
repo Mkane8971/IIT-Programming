@@ -20,7 +20,9 @@ RUN npm run build
 # Stage 2: Serve React with Nginx
 FROM nginxinc/nginx-unprivileged:${NGINX_VERSION} AS runner
 
-COPY nginx.conf /etc/nginx/nginx.conf
+# COPY nginx.conf /etc/nginx/nginx.conf
+ARG NGINX_CONFIG=nginx.conf
+COPY ${NGINX_CONFIG} /etc/nginx/nginx.conf
 
 COPY --chown=nginx:nginx --from=builder \
     /app/dist /usr/share/nginx/html

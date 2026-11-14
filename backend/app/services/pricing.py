@@ -5,7 +5,8 @@ from decimal import Decimal, ROUND_HALF_UP
 def calculate_payment(
     procedure: dict,
     locality: dict,
-    setting: str
+    setting: str,
+    year: int
 ) -> dict:
     if setting not in ("facility", "nonfacility"):
         raise ValueError("Invalid facility setting")
@@ -54,7 +55,8 @@ def calculate_payment(
     return {
         "hcpcs": procedure["hcpc"],
         "description": procedure.get("sdesc", ""),
-        "year": int(procedure["year"]),
+        "year": year,
+        "cms_release": procedure.get("year"),
         "modifier": procedure.get("modifier"),
         "setting": setting,
         "locality": locality["locality"],
