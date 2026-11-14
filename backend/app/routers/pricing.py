@@ -109,6 +109,7 @@ async def estimate_payment(
                 procedure=record,
                 locality=selected_locality,
                 setting=setting,
+                year=year,
             )
             for record in records
         ]
