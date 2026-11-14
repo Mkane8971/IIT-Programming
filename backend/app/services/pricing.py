@@ -53,6 +53,7 @@ def calculate_payment(
 
     return {
         "hcpcs": procedure["hcpc"],
+        "description": procedure.get("sdesc", ""),
         "year": int(procedure["year"]),
         "modifier": procedure.get("modifier"),
         "setting": setting,

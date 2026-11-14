@@ -3,6 +3,7 @@ import type { ProcedureSearchParams } from "../types/procedure";
 
 export interface PaymentEstimate {
   hcpcs: string;
+  description: string;
   year: number;
   modifier: string | null;
   setting: string;
