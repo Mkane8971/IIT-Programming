@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from app.database import lifespan
 from app.routers.procedures import router as procedures_router
 from app.routers.localities import router as localities_router
+from app.routers.pricing import router as pricing_router
+
 
 app = FastAPI(
     title="Medicare PFS Explorer",
@@ -13,6 +15,7 @@ app = FastAPI(
 # register endpoints
 app.include_router(procedures_router)
 app.include_router(localities_router)
+app.include_router(pricing_router)
 
 
 @app.get("/health")
