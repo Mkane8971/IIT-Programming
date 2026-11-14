@@ -4,6 +4,7 @@ import { useState } from "react";
 import ProcedureSearch from "./components/ProcedureSearch";
 import ProcedureResults from "./components/ProcedureResults";
 import PricingResults from "./components/PricingResults";
+import SearchGuide from "./components/SearchGuide";
 
 import { getProcedure } from "./api/procedures";
 import { getPricingEstimate } from "./api/pricing";
@@ -59,6 +60,8 @@ export default function App() {
   return (
     <main>
       <h1>Medicare PFS Explorer</h1>
+
+      <SearchGuide />
 
       <ProcedureSearch
         onSearch={handleSearch}
