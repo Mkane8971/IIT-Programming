@@ -13,7 +13,11 @@ class CMSClient:
             "metastore/schemas/dataset/items"
         )
 
-    async def get_resource_id(self, year: int, dataset_type: str = "Indicators"):
+    async def get_resource_id(
+            self,
+            year: int,
+            dataset_type: str = "Indicators"
+            ):
         async with httpx.AsyncClient(timeout=30.0) as client:
 
             # Retrieve CMS dataset catalog
@@ -29,7 +33,7 @@ class CMSClient:
                 raise ValueError(
                     f"Invalid dataset type: {dataset_type}"
                 )
-            
+
             matches = [
                 dataset
                 for dataset in datasets

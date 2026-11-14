@@ -56,11 +56,18 @@ The application uses the following cloud resources:
 
 Azure Container Apps Consumption and MongoDB Atlas M0 were selected to limit operating costs. The deployment does not include a NAT Gateway or a Log Analytics workspace.
 
-## Database and API configuration
+### MongoDB Atlas and Schema Design
 
-Development began with MongoDB in Docker Compose and later transitioned to MongoDB Atlas for cloud caching. The Atlas connection URI is stored as an Azure Container App secret, keeping credentials out of source control.
+MongoDB Atlas provides the cloud-hosted database used to cache procedure information retrieved from CMS APIs. Unlike a relational database with predefined tables and columns, MongoDB uses collections of BSON documents that can contain different fields and structures. This flexible schema is useful when working with external APIs, where data formats and available fields may change between CMS releases.
 
-The backend implements a cache that retains up to 25 procedure results and reuses records for up to 24 hours. During deployment, changing Azure outbound IP addresses sometimes prevented Atlas connections under a restricted IP allowlist. Atlas access remains restricted, and FastAPI treats MongoDB as an optional dependency. If the cache is unavailable, the API logs the issue, skips database calls temporarily, and retrieves the data directly from CMS. The fallback was tested locally by stopping MongoDB and confirming that procedure and pricing requests still succeeded.
+The application uses a database named `medicare` with a collection named `cms_cache`. Each cached document identifies a procedure using its HCPCS code, year, modifier, and CMS resource ID. It also stores the retrieved procedure records and timestamps used to manage the cache. Records expire after 24 hours, and the collection is limited to 25 cached entries.
+
+The implementation is organized across two Python modules:
+
+- `backend/app/database.py` configures the MongoDB connection using PyMongo's asynchronous client.
+- `backend/app/repositories/procedures.py` defines the collection operations, including document retrieval, insertion or updates, and cache expiration.
+
+This design accommodates changing CMS response structures while reducing repeated API requests. MongoDB serves as an optional caching layer, allowing the application to retrieve data directly from CMS when the database is unavailable.
 
 ## Deployment and CI/CD
 
