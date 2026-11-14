@@ -25,7 +25,10 @@ def test_arizona_facility_payment():
     result = calculate_payment(
         procedure,
         locality,
-        setting="facility"
+        setting="facility",
+        year=2026
     )
 
     assert result["estimated_payment"] == "1128.02"
+    assert result["year"] == 2026
+    assert result["cms_release"] == "2026"
