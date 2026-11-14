@@ -21,7 +21,7 @@ def create_mongo_client():
         return AsyncMongoClient(
             mongo_uri,
             server_api=server_api,
-            serverSelectionTimeoutMS=5000
+            serverSelectionTimeoutMS=2000
         )
 
     # Local Docker Compose connection
@@ -32,7 +32,7 @@ def create_mongo_client():
         password=os.environ["MONGO_PASSWORD"],
         authSource="admin",
         server_api=server_api,
-        serverSelectionTimeoutMS=5000
+        serverSelectionTimeoutMS=2000
     )
 
 
@@ -41,15 +41,13 @@ async def lifespan(app: FastAPI):
     client = create_mongo_client()
 
     try:
-        # Verify connection to MongoDB
-        await client.admin.command({"ping": 1})
-        print("Successfully connected to MongoDB!")
-
-        # Make database available to FastAPI
+        # MongoDB is an optional cache dependency.
+        # Creating the client does not require an active connection.
         app.state.db = client[os.environ["MONGO_DATABASE"]]
+
+        print("FastAPI initialized. MongoDB cache client configured.")
 
         yield
 
     finally:
-        # Close connection when FastAPI shuts down
         await client.close()
