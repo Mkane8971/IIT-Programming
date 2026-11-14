@@ -2,7 +2,7 @@
 
 **Project:** Medicare Physician Fee Schedule Explorer  
 **Source code:** [GitHub – IIT-Programming](https://github.com/Mkane8971/IIT-Programming)  
-**User stories and requirements:** [GitHub Issues](https://github.com/Mkane8971/IIT-Programming/issues)  
+**User stories and requirements:** [GitHub Issues](https://github.com/Mkane8971/IIT-Programming/issues?q=is%3Aissue+state%3Aclosed)  
 **Prototyping and mockup documentation:** [docs/prototyping/mockup_documentation.md](https://github.com/Mkane8971/IIT-Programming/blob/main/docs/prototyping/mockup_documentation.md)  
 **Live application:** [Medicare PFS Explorer](https://pfs-frontend.wonderfulpebble-55b2f0ff.westus2.azurecontainerapps.io)  
 **Hosting:** Microsoft Azure, West US 2
