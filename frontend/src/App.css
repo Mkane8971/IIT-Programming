@@ -351,3 +351,35 @@ tbody tr:hover {
     font-size: 0.85rem;
   }
 }
+
+/* ========================================
+   Medicare Payment Estimates
+======================================== */
+
+.pricing-results {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.pricing-results h2 {
+  margin-bottom: 1rem;
+}
+
+.pricing-results p {
+  margin: 0.5rem 0;
+}
+
+.payment-amount {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #16803c;
+  white-space: nowrap;
+}
+
+.pricing-disclaimer {
+  margin-top: 1.5rem !important;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  line-height: 1.5;
+}
