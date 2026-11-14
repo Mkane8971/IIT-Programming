@@ -6,6 +6,7 @@ export interface ProcedureSearchParams {
   year: number;
   modifier?: string;
   setting: Setting;
+  locality: string;
 }
 
 export interface CMSProcedure {
