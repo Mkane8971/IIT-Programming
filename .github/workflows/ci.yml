@@ -1,0 +1,66 @@
+
+name: Medicare PFS CI
+
+on:
+  push:
+    branches:
+      - feature/azure-deployment
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build FastAPI image
+        run: docker build -t pfs-api:test ./backend
+
+      - name: Run Python unit tests
+        run: |
+          docker run --rm pfs-api:test \
+            python -m pytest tests/ -v -p no:cacheprovider
+
+      - name: Build React frontend
+        run: docker build -t pfs-frontend:test ./frontend
+
+  publish:
+    needs: test-and-build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish FastAPI
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ghcr.io/mkane8971/medicare-pfs-api:development
+
+      - name: Build and publish React
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: ghcr.io/mkane8971/medicare-pfs-frontend:development
